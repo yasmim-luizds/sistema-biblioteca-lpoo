@@ -1,16 +1,12 @@
 package usuarios;
 
-public class Aluno extends Usuario {
+public class Professor extends Usuario {
     private int matricula;
-    private String curso;
-    private int periodo;
 
-    public Aluno(String nome, String email, String username, String senha,
-                 int matricula, String curso, int periodo) {
+    public Professor(String nome, String email, String username, String senha,
+                     int matricula) {
         super(nome, email, username, senha);
         this.matricula = matricula;
-        this.curso = curso;
-        this.periodo = periodo;
     }
 
     public int getMatricula() {
@@ -21,22 +17,6 @@ public class Aluno extends Usuario {
         this.matricula = matricula;
     }
 
-    public String getCurso() {
-        return curso;
-    }
-
-    public void setCurso(String curso) {
-        this.curso = curso;
-    }
-
-    public int getPeriodo() {
-        return periodo;
-    }
-
-    public void setPeriodo(int periodo) {
-        this.periodo = periodo;
-    }
-
     @Override
     public boolean autenticar(String senha) {
         return this.senha != null && this.senha.equals(senha);
@@ -44,26 +24,24 @@ public class Aluno extends Usuario {
 
     @Override
     public int getPrazoEmprestimoDias() {
-        return 7;
+        return 14;
     }
 
     @Override
     public double getMultaPorDia() {
-        return 2.0;
+        return 1.0;
     }
 
     @Override
     public boolean podeEmprestar() {
-        return getQtdeEmprestimosAtivos() < 2;
+        return getQtdeEmprestimosAtivos() < 5;
     }
 
     @Override
     public String toString() {
-        return "Aluno{" +
+        return "Professor{" +
                 "nome='" + nome + '\'' +
                 ", matricula=" + matricula +
-                ", curso='" + curso + '\'' +
-                ", periodo=" + periodo +
                 ", login='" + username + '\'' +
                 '}';
     }
