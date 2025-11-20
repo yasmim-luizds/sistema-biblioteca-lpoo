@@ -3,90 +3,146 @@ package sistema;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.*;
-
+import Pessoas.Usuario;
 import Pessoas.Aluno;
-import Pessoas.Bibliotecario;
+import Pessoas.Professor;
 
 public class Arquivo {
 
-    // Método para gravar livros no arquivo
-    public static void gravarLivrosEmArquivo(String arquivo, List<Livro> livros) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
-            for (Livro livro : livros) {
-                // Gravando os livros no formato: titulo;autor;isbn;disponivel
-                writer.write(livro.getTitulo() + ";" + livro.getAutor() + ";" + livro.getIsbn() + ";" + livro.isDisponivel());
-                writer.newLine();
+    // grava livros no arquivo: isbn;titulo;autor;disponivel
+    public static void gravarLivros(String arquivo, List<Livro> livros) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
+            for (Livro l : livros) {
+                bw.write(l.getIsbn() + ";" + l.getTitulo() + ";" + l.getAutor() + ";" + l.isDisponivel());
+                bw.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Erro ao gravar livros no arquivo: " + e.getMessage());
+            System.err.println("Erro gravarLivros: " + e.getMessage());
         }
     }
 
-    // Método para carregar os livros do arquivo
     public static List<Livro> carregarLivros(String arquivo) {
         List<Livro> livros = new ArrayList<>();
-        try (Scanner scanner = new Scanner(new File(arquivo))) {
-            while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                String[] partes = linha.split(";"); // Separando os campos por ponto e vírgula
-
-                // Certificando-se de que temos todos os dados necessários
-                if (partes.length == 4) {
-                    String titulo = partes[0];
-                    String autor = partes[1];
-                    int isbn = Integer.parseInt(partes[2]);
-                    boolean disponivel = Boolean.parseBoolean(partes[3]);
-
-                    // Adicionando o livro à lista
+        File f = new File(arquivo);
+        if (!f.exists()) {
+            return livros;
+        }
+        try (Scanner sc = new Scanner(f)) {
+            while (sc.hasNextLine()) {
+                String linha = sc.nextLine().trim();
+                if (linha.isEmpty()) {
+                    continue;
+                }
+                String[] p = linha.split(";");
+                if (p.length >= 4) {
+                    int isbn = Integer.parseInt(p[0]);
+                    String titulo = p[1];
+                    String autor = p[2];
+                    boolean disponivel = Boolean.parseBoolean(p[3]);
                     livros.add(new Livro(titulo, autor, isbn, disponivel));
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erro ao carregar livros: " + e.getMessage());
+            System.err.println("Erro carregarLivros: " + e.getMessage());
         }
         return livros;
     }
 
-    // Método para gravar empréstimos no arquivo
-    public static void gravarEmprestimosEmArquivo(String arquivo, List<Emprestimo> emprestimos) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
-            for (Emprestimo emprestimo : emprestimos) {
-                // Gravando o empréstimo no formato: livro_isbn;pessoa_nome;data_emprestimo
-                writer.write(emprestimo.getLivro().getIsbn() + ";"
-                        + emprestimo.getAluno().getNome() + ";"
-                        + emprestimo.getDataEmprestimo());
-                writer.newLine();
+    // grava usuarios (ALUNO/PROFESSOR) — formato livre, mantenha coerente com seu carregador
+    public static void gravarUsuarios(String arquivo, List<Usuario> usuarios) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
+            for (Usuario u : usuarios) {
+                if (u instanceof Aluno) {
+                    Aluno a = (Aluno) u;
+                    // formato: ALUNO;login;senha;nome;email;matricula;curso;periodo
+                    bw.write("ALUNO;" + a.getLogin() + ";" + a.getSenha() + ";" + a.getNome() + ";" + a.getEmail()
+                            + ";" + a.getMatricula() + ";" + a.getCurso() + ";" + a.getPeriodo());
+                } else if (u instanceof Professor) {
+                    Professor p = (Professor) u;
+                    bw.write("PROFESSOR;" + p.getLogin() + ";" + p.getSenha() + ";" + p.getNome() + ";" + p.getEmail()
+                            + ";" + p.getMatricula());
+                } else {
+                    // genérico (não esperado)
+                    bw.write("USER;" + u.getLogin() + ";" + u.getSenha() + ";" + u.getNome() + ";" + u.getEmail());
+                }
+                bw.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Erro ao gravar empréstimos no arquivo: " + e.getMessage());
+            System.err.println("Erro gravarUsuarios: " + e.getMessage());
         }
     }
 
-    // Método para remover livro do arquivo
-    public static void removerLivroDoArquivo(String arquivo, int isbn) {
-        List<Livro> livros = carregarLivros(arquivo); // Carrega todos os livros
-        livros.removeIf(livro -> livro.getIsbn() == isbn); // Remove o livro com o ISBN especificado
-
-        // Regrava a lista de livros atualizada no arquivo
-        gravarLivrosEmArquivo(arquivo, livros);
+    public static List<Usuario> carregarUsuarios(String arquivo) {
+        List<Usuario> usuarios = new ArrayList<>();
+        File f = new File(arquivo);
+        if (!f.exists()) {
+            return usuarios;
+        }
+        try (Scanner sc = new Scanner(f)) {
+            while (sc.hasNextLine()) {
+                String linha = sc.nextLine().trim();
+                if (linha.isEmpty()) {
+                    continue;
+                }
+                String[] p = linha.split(";");
+                String tipo = p[0];
+                if ("ALUNO".equalsIgnoreCase(tipo) && p.length >= 8) {
+                    String login = p[1], senha = p[2], nome = p[3], email = p[4];
+                    int matricula = Integer.parseInt(p[5]);
+                    String curso = p[6];
+                    int periodo = Integer.parseInt(p[7]);
+                    usuarios.add(new Aluno(nome, Integer.MIN_VALUE, 'U', login, senha, matricula, curso, periodo));
+                    // note: idade/sexo preenchidos com placeholder se seu construtor exigir — ajuste conforme seu construtor real
+                } else if ("PROFESSOR".equalsIgnoreCase(tipo) && p.length >= 6) {
+                    String login = p[1], senha = p[2], nome = p[3], email = p[4];
+                    int matricula = Integer.parseInt(p[5]);
+                    usuarios.add(new Professor(nome, email, login, senha, matricula));
+                } else if ("BIBLIOTECARIO".equalsIgnoreCase(tipo) && p.length >= 6) {
+                    String login = p[1], senha = p[2], nome = p[3], email = p[4];
+                    int codigo = Integer.parseInt(p[5]);
+                    usuarios.add(new Admin(nome, email, login, senha)); // Admin usado como "bibliotecario"
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Erro carregarUsuarios: " + e.getMessage());
+        }
+        return usuarios;
     }
 
-    // Método para carregar empréstimos do arquivo
-    public static List<Emprestimo> carregarEmprestimos(String arquivo, List<Livro> livros, List<Aluno> alunos) {
+    // emprestimos: isbn;loginUsuario;dataEmprestimo;dataDevolucao;status
+    public static void gravarEmprestimos(String arquivo, List<Emprestimo> emprestimos) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(arquivo))) {
+            for (Emprestimo e : emprestimos) {
+                String dataDev = e.getDataDevolucao() != null ? e.getDataDevolucao().toString() : "";
+                String login = e.getUsuario() != null ? e.getUsuario().getLogin() : "";
+                bw.write(e.getLivro().getIsbn() + ";" + login + ";" + e.getDataEmprestimo() + ";" + dataDev + ";" + e.getStatus());
+                bw.newLine();
+            }
+        } catch (IOException ex) {
+            System.err.println("Erro gravarEmprestimos: " + ex.getMessage());
+        }
+    }
+
+    public static List<Emprestimo> carregarEmprestimos(String arquivo, List<Livro> livros, List<Usuario> usuarios) {
         List<Emprestimo> emprestimos = new ArrayList<>();
-        try (Scanner scanner = new Scanner(new File(arquivo))) {
-            while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                String[] partes = linha.split(";"); // Separando os campos por ponto e vírgula
+        File f = new File(arquivo);
+        if (!f.exists()) {
+            return emprestimos;
+        }
+        try (Scanner sc = new Scanner(f)) {
+            while (sc.hasNextLine()) {
+                String linha = sc.nextLine().trim();
+                if (linha.isEmpty()) {
+                    continue;
+                }
+                String[] p = linha.split(";");
+                if (p.length >= 4) {
+                    int isbn = Integer.parseInt(p[0]);
+                    String login = p[1];
+                    LocalDate dataEmp = LocalDate.parse(p[2]);
+                    String dataDevStr = p[3];
+                    String status = p.length > 4 ? p[4] : "PENDENTE";
 
-                // Certificando-se de que temos todos os dados necessários
-                if (partes.length == 3) {
-                    int isbn = Integer.parseInt(partes[0]);
-                    String nomePessoa = partes[1];
-                    String dataEmprestimoStr = partes[2];
-                    LocalDate dataEmprestimo = LocalDate.parse(dataEmprestimoStr); // Convertendo string para LocalDate
-
-                    // Procurando o livro pelo ISBN diretamente na lista de livros
                     Livro livro = null;
                     for (Livro l : livros) {
                         if (l.getIsbn() == isbn) {
@@ -95,138 +151,45 @@ public class Arquivo {
                         }
                     }
 
-                    // Procurando a pessoa na lista de pessoas
-                    Aluno aluno = null;
-                    for (Aluno a : alunos) {
-                        if (a.getNome().equals(nomePessoa)) {
-                            aluno = a;
+                    Usuario usuario = null;
+                    for (Usuario u : usuarios) {
+                        if (u.getLogin().equals(login)) {
+                            usuario = u;
                             break;
                         }
                     }
 
-                    // Adicionando o empréstimo à lista, se o livro e a pessoa existirem
-                    if (livro != null && aluno != null) {
-                        emprestimos.add(new Emprestimo(livro, aluno, dataEmprestimo, null));
+                    if (livro != null && usuario != null) {
+                        Emprestimo e = new Emprestimo(livro, usuario, dataEmp);
+                        if (dataDevStr != null && !dataDevStr.isEmpty()) {
+                            e.registrarDevolucao(LocalDate.parse(dataDevStr));
+                        }
+                        if ("APROVADO".equalsIgnoreCase(status)) {
+                            e.aprovar();
+                        }
+                        if ("RECUSADO".equalsIgnoreCase(status)) {
+                            e.recusar();
+                        }
+                        emprestimos.add(e);
                     }
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar empréstimos: " + e.getMessage());
+        } catch (IOException ex) {
+            System.err.println("Erro carregarEmprestimos: " + ex.getMessage());
         }
         return emprestimos;
     }
 
-    // Método para alterar a disponibilidade de um livro no arquivo
+    // altera disponibilidade no arquivo de livros
     public static void alterarDisponibilidadeLivro(String arquivo, int isbn, boolean novaDisponibilidade) {
-        // Carregar todos os livros do arquivo
         List<Livro> livros = carregarLivros(arquivo);
-
-        // Localizar o livro pelo ISBN e alterar a disponibilidade
         for (Livro livro : livros) {
             if (livro.getIsbn() == isbn) {
                 livro.setDisponivel(novaDisponibilidade);
-                break; // Sai do laço assim que o livro for encontrado
+                break;
             }
         }
-
-        // Gravar a lista atualizada no arquivo
-        gravarLivrosEmArquivo(arquivo, livros);
-
-        System.out.println("Disponibilidade do livro com ISBN " + isbn + " foi alterada para " + novaDisponibilidade);
-    }
-
-    // Método para gravar alunos no arquivo
-    public static void gravarAlunosEmArquivo(String arquivo, List<Aluno> alunos) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
-            for (Aluno aluno : alunos) {
-                // Gravando o aluno no formato: nome;idade;sexo;login;senha;curso;periodo;matricula
-                writer.write(aluno.getNome() + ";"
-                        + aluno.getIdade() + ";"
-                        + aluno.getSexo() + ";"
-                        + aluno.getLogin() + ";"
-                        + aluno.getSenha() + ";"
-                        + aluno.getCurso() + ";"
-                        + aluno.getPeriodo() + ";"
-                        + aluno.getMatricula());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao gravar alunos no arquivo: " + e.getMessage());
-        }
-    }
-
-    // Método para carregar os alunos do arquivo
-    public static List<Aluno> carregarAlunos(String arquivo) {
-        List<Aluno> alunos = new ArrayList<>();
-        try (Scanner scanner = new Scanner(new File(arquivo))) {
-            while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                String[] partes = linha.split(";"); // Separando os campos por ponto e vírgula
-
-                // Certificando-se de que temos todos os dados necessários
-                if (partes.length == 8) { // 8 campos: nome, idade, sexo, login, senha, curso, periodo, matricula
-                    String nome = partes[0];
-                    int idade = Integer.parseInt(partes[1]);
-                    char sexo = partes[2].charAt(0);
-                    String login = partes[3];
-                    String senha = partes[4];
-                    String curso = partes[5];
-                    int periodo = Integer.parseInt(partes[6]);
-                    int matricula = Integer.parseInt(partes[7]);
-
-                    // Adicionando o aluno à lista
-                    alunos.add(new Aluno(nome, idade, sexo, login, senha, matricula, curso, periodo));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar alunos: " + e.getMessage());
-        }
-        return alunos;
-    }
-
-    // Método para gravar bibliotecários no arquivo
-    public static void gravarBibliotecariosEmArquivo(String arquivo, List<Bibliotecario> bibliotecarios) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(arquivo))) {
-            for (Bibliotecario bibliotecario : bibliotecarios) {
-                // Gravando o bibliotecário no formato: nome;idade;sexo;login;senha;codigo
-                writer.write(bibliotecario.getNome() + ";"
-                        + bibliotecario.getIdade() + ";"
-                        + bibliotecario.getSexo() + ";"
-                        + bibliotecario.getLogin() + ";"
-                        + bibliotecario.getSenha() + ";"
-                        + bibliotecario.getCodigo());
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao gravar bibliotecários no arquivo: " + e.getMessage());
-        }
-    }
-
-    // Método para carregar bibliotecários do arquivo
-    public static List<Bibliotecario> carregarBibliotecarios(String arquivo) {
-        List<Bibliotecario> bibliotecarios = new ArrayList<>();
-        try (Scanner scanner = new Scanner(new File(arquivo))) {
-            while (scanner.hasNextLine()) {
-                String linha = scanner.nextLine();
-                String[] partes = linha.split(";"); // Separando os campos por ponto e vírgula
-
-                // Certificando-se de que temos todos os dados necessários
-                if (partes.length == 6) { // 6 campos: nome, idade, sexo, login, senha, código (int)
-                    String nome = partes[0];
-                    int idade = Integer.parseInt(partes[1]);
-                    char sexo = partes[2].charAt(0);  // Considerando que o sexo é uma única letra (M/F)
-                    String login = partes[3];
-                    String senha = partes[4];
-                    int codigo = Integer.parseInt(partes[5]); // Agora tratando o código como int
-
-                    // Adicionando o bibliotecário à lista com o construtor adequado
-                    bibliotecarios.add(new Bibliotecario(nome, idade, sexo, login, senha, codigo));
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Erro ao carregar bibliotecários: " + e.getMessage());
-        }
-        return bibliotecarios;
+        gravarLivros(arquivo, livros);
     }
 
 }

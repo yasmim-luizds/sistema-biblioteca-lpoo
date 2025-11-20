@@ -9,9 +9,9 @@ public class SistemaBiblioteca {
     private List<Usuario> usuarios = new ArrayList<>();
     private List<Emprestimo> emprestimos = new ArrayList<>();
 
-    private static final String ARQ_LIVROS = "livros.csv";
-    private static final String ARQ_USUARIOS = "usuarios.csv";
-    private static final String ARQ_EMPRESTIMOS = "emprestimos.csv";
+    private static final String ARQ_LIVROS = "livros.txt";
+    private static final String ARQ_USUARIOS = "usuarios.txt";
+    private static final String ARQ_EMPRESTIMOS = "emprestimos.txt";
 
     public SistemaBiblioteca() {
         this.livros = Arquivo.carregarLivros(ARQ_LIVROS);
@@ -62,75 +62,63 @@ public class SistemaBiblioteca {
         return null;
     }
 
-    // Usuário solicita empréstimo — se livro disponível cria PENDENTE; se solicitação por bibliotecário aprova imediatamente
-    public void solicitarEmprestimo(Usuario solicitante, int isbn) throws LivroIndisponivelException {
+    // solicitar empréstimo: verifica limite via polimorfismo e cria PENDENTE ou aprova se solicitante for Admin
+    public void solicitarEmprestimo(Usuario solicitante, int isbn) throws Exception {
         Livro livro = buscarLivroPorIsbn(isbn);
-
         if (livro == null) {
-            throw new LivroIndisponivelException("Livro não encontrado (ISBN " + isbn + ").");
+            throw new Exception("Livro não encontrado (ISBN " + isbn + ").");
         }
         if (!livro.isDisponivel()) {
-            throw new LivroIndisponivelException("Livro indisponível no momento.");
+            throw new Exception("Livro indisponível no momento.");
         }
 
-        //NOVA REGRA: polimorfismo de limite
         if (!solicitante.podeEmprestar()) {
-            throw new LivroIndisponivelException(
-                    "O usuário " + solicitante.getNome() + " atingiu o limite de empréstimos simultâneos."
-            );
+            throw new Exception("O usuário " + solicitante.getNome() + " atingiu o limite de empréstimos.");
         }
 
-        // Cria o empréstimo em estado PENDENTE por padrão
         Emprestimo e = new Emprestimo(livro, solicitante, LocalDate.now());
 
-        // Se for bibliotecário → aprova imediatamente
-        if (solicitante instanceof Bibliotecario) {
+        // se Admin (operador), aprova direto
+        if (solicitante instanceof Admin) {
             e.aprovar();
-            solicitante.incrementarEmprestimos(); // confirma contagem
+            solicitante.incrementarEmprestimos();
             livro.setDisponivel(false);
-        } else {
-            // Se for usuário comum → empréstimo continua pendente
-            // ainda não marca o livro indisponível
-            // nem incrementa contagem de empréstimos
         }
 
         emprestimos.add(e);
         Arquivo.gravarEmprestimos(ARQ_EMPRESTIMOS, emprestimos);
-
-        // Atualiza disponibilidade do livro no arquivo:
-        // Livro fica indisponível APENAS se o empréstimo foi aprovado.
-        boolean deveFicarDisponivel = !e.getStatus().equals("APROVADO");
-        Arquivo.alterarDisponibilidadeLivro(ARQ_LIVROS, isbn, deveFicarDisponivel);
+        Arquivo.alterarDisponibilidadeLivro(ARQ_LIVROS, isbn, livro.isDisponivel());
     }
 
-    // Bibliotecario aprova um empréstimo pendente
-    public boolean aprovarEmprestimo(Emprestimo emprestimo, Bibliotecario bibliotecario) throws EmprestimoException {
+    // aprovar um empréstimo pendente (feito por um Admin)
+    public boolean aprovarEmprestimo(Emprestimo emprestimo, Admin admin) throws Exception {
         if (!emprestimos.contains(emprestimo)) {
-            throw new EmprestimoException("Empréstimo não encontrado");
+            throw new Exception("Empréstimo não encontrado");
         }
         if (!"PENDENTE".equals(emprestimo.getStatus())) {
-            throw new EmprestimoException("Só é possível aprovar empréstimos em PENDENTE");
+            throw new Exception("Só é possível aprovar empréstimos em PENDENTE");
         }
         emprestimo.aprovar();
+        emprestimo.getUsuario().incrementarEmprestimos();
         Arquivo.gravarEmprestimos(ARQ_EMPRESTIMOS, emprestimos);
         Arquivo.alterarDisponibilidadeLivro(ARQ_LIVROS, emprestimo.getLivro().getIsbn(), false);
         return true;
     }
 
-    public boolean registrarDevolucao(Emprestimo emprestimo) throws EmprestimoException {
+    public boolean registrarDevolucao(Emprestimo emprestimo) throws Exception {
         if (!emprestimos.contains(emprestimo)) {
-            throw new EmprestimoException("Empréstimo não encontrado");
+            throw new Exception("Empréstimo não encontrado");
         }
         if ("DEVOLVIDO".equals(emprestimo.getStatus())) {
-            throw new EmprestimoException("Já devolvido");
+            throw new Exception("Já devolvido");
         }
         emprestimo.registrarDevolucao(LocalDate.now());
+        emprestimo.getUsuario().reduzirEmprestimos();
         Arquivo.gravarEmprestimos(ARQ_EMPRESTIMOS, emprestimos);
         Arquivo.gravarLivros(ARQ_LIVROS, livros);
         return true;
     }
 
-    // buscas e listagens úteis
     public List<Livro> listarLivros() {
         return Collections.unmodifiableList(livros);
     }
@@ -150,6 +138,11 @@ public class SistemaBiblioteca {
             }
         }
         return null;
+    }
+
+    // expor listas para Admin usar (remover/cadastrar)
+    public List<Livro> getLivros() {
+        return livros;
     }
     
 }

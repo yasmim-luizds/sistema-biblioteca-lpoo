@@ -24,7 +24,7 @@ public class Professor extends Usuario {
     @Override
     public int getPrazoEmprestimoDias() {
         return 14;
-    }    // Professor: 14 dias
+    }
 
     @Override
     public double getMultaPorDia() {

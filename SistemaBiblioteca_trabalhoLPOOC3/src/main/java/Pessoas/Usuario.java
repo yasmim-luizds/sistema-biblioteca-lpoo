@@ -46,10 +46,6 @@ public abstract class Usuario {
     public void setSenha(String senha) {
         this.senha = senha;
     }
-    
-    // POLIMORFISMO: cada tipo de usuário pode ter prazos e multa diferentes
-    public abstract int getPrazoEmprestimoDias();
-    public abstract double getMultaPorDia();
 
     public boolean autenticar(String senha) {
         return this.senha != null && this.senha.equals(senha);
@@ -69,7 +65,9 @@ public abstract class Usuario {
         }
     }
 
-    // MÉTODO POLIMÓRFICO
+    // MÉTODOS POLIMÓRFICOS
     public abstract boolean podeEmprestar();
+    public abstract int getPrazoEmprestimoDias();
+    public abstract double getMultaPorDia();
 
 }

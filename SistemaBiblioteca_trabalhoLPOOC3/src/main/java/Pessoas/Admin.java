@@ -1,4 +1,5 @@
 package Pessoas;
+import java.time.LocalDate;
 import sistema.*;
 
 public class Admin {
@@ -46,53 +47,63 @@ public class Admin {
         this.senha = senha;
     }
     
-    //Aprova um empréstimo pendente
+    // Aprova um empréstimo pendente: atualiza status, livro e contador do usuário
     public void aprovarEmprestimo(Emprestimo e) {
-        if (!e.getStatus().equals("PENDENTE")) {
-            System.out.println("Empréstimo já está aprovado ou devolvido.");
+        if (!"PENDENTE".equals(e.getStatus())) {
+            System.out.println("Empréstimo já está aprovado/recusado/devolvido.");
             return;
         }
-
-        e.aprovar();
-        e.getLivro().setDisponivel(false);
-        e.getUsuario().incrementarEmprestimos();
+        e.aprovar(); // seta status APROVADO e marca livro indisponível
+        // incrementa contador do usuário associado ao empréstimo
+        if (e.getUsuario() != null) {
+            e.getUsuario().incrementarEmprestimos();
+        }
     }
 
-    //Registra devolução e atualiza status e disponibilidade
+    // Registra devolução e atualiza status e disponibilidade
     public void registrarDevolucao(Emprestimo e) {
-        if (!e.getStatus().equals("APROVADO")) {
-            System.out.println("Empréstimo não está aprovado.");
+        if (!"APROVADO".equals(e.getStatus())) {
+            System.out.println("Empréstimo não está em estado APROVADO.");
             return;
         }
-
-        e.devolver(LocalDate.now());
-        e.getUsuario().reduzirEmprestimos();
-        e.getLivro().setDisponivel(true);
+        e.registrarDevolucao(LocalDate.now()); // seta data e status DEVOLVIDO
+        if (e.getUsuario() != null) {
+            e.getUsuario().reduzirEmprestimos();
+        }
+        // livro volta a estar disponível dentro de registrarDevolucao, mas garantir:
+        if (e.getLivro() != null) {
+            e.getLivro().setDisponivel(true);
+        }
     }
 
-    //Cadastra um novo livro no sistema
+    // Cadastra novo livro usando o sistema
     public void cadastrarLivro(SistemaBiblioteca sistema, Livro novo) {
-        sistema.getLivros().add(novo);
-        sistema.salvarLivros();
+        sistema.adicionarLivro(novo);
     }
 
-    //Remove um livro caso não esteja emprestado
-    public void removerLivro(SistemaBiblioteca sistema, Livro livro) {
+    // Remove um livro caso não esteja emprestado
+    public void removerLivro(SistemaBiblioteca sistema, int isbn) {
+        Livro livro = sistema.buscarLivroPorIsbn(isbn);
+        if (livro == null) {
+            System.out.println("Livro não encontrado.");
+            return;
+        }
         if (!livro.isDisponivel()) {
             System.out.println("Livro não pode ser removido: está emprestado.");
             return;
         }
-
-        sistema.getLivros().remove(livro);
-        sistema.salvarLivros();
+        sistema.excluirLivro(isbn);
     }
 
-    //Atualiza informações de um livro
+    // Atualiza informações de um livro (título/autor)
     public void atualizarLivro(Livro livro, String titulo, String autor) {
-        if (titulo != null) {
+        if (livro == null) {
+            return;
+        }
+        if (titulo != null && !titulo.isBlank()) {
             livro.setTitulo(titulo);
         }
-        if (autor != null) {
+        if (autor != null && !autor.isBlank()) {
             livro.setAutor(autor);
         }
     }
