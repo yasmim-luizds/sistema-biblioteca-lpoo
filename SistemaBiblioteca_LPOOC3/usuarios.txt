@@ -1,2 +1,4 @@
 ALUNO;julia;2004;julia ogassavara;julia@gmail.com;2521;Sistemas de Informação;4
 PROFESSOR;cinthia;12345;Cinthia;cinthia@hotmail.com;1020
+ALUNO;ylsantos;Rhaegal;Yasmim Luiz;ylsantos@gmail.com;12345678;Sistemas de Informação;4
+PROFESSOR;renatalaranja;renata;Renata;renata@professor.faesa.br;39434893

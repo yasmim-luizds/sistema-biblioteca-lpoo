@@ -9,10 +9,7 @@ import javax.swing.JOptionPane;
 import sistema.SistemaBiblioteca;
 import usuarios.*;
 
-/**
- *
- * @author julia
- */
+
 public class TelaLogin extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaLogin.class.getName());
@@ -151,19 +148,19 @@ public class TelaLogin extends javax.swing.JFrame {
         }
         
         // 2) Verifica usuário normal (Aluno ou Professor)
-        Usuario u = sistema.validarLogin(login, senha);
-
+       Usuario u = sistema.validarLogin(login, senha);
         if (u == null) {
             JOptionPane.showMessageDialog(this, "Login ou senha inválidos.");
             return;
         }
 
-        JOptionPane.showMessageDialog (this, 
-        "Login como " + u.getClass().getSimpleName());
-        TelaUsuario telaUsuario = new TelaUsuario(sistema);
+        JOptionPane.showMessageDialog(this,
+        "Login como " + u.getClass().getSimpleName() + " - " + u.getNome());
 
-        telaUsuario.setVisible (true);
-        this.dispose(); 
+        TelaUsuario telaUsuario = new TelaUsuario(sistema, u);
+        telaUsuario.setVisible(true);
+        this.dispose();
+
         
     }//GEN-LAST:event_botaoEntrarActionPerformed
 

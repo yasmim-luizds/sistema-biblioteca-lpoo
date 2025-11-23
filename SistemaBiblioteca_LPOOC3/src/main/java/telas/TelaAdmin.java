@@ -9,10 +9,7 @@ import sistema.SistemaBiblioteca;
 import usuarios.*;
 import sistema.Emprestimo;
 
-/**
- *
- * @author julia
- */
+
 public class TelaAdmin extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaAdmin.class.getName());
@@ -99,9 +96,19 @@ public class TelaAdmin extends javax.swing.JFrame {
 
         btnListarUsers.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         btnListarUsers.setText("Listar Usuários");
+        btnListarUsers.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnListarUsersActionPerformed(evt);
+            }
+        });
 
         btnListarEmprest.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         btnListarEmprest.setText("Listar Empréstimos");
+        btnListarEmprest.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnListarEmprestActionPerformed(evt);
+            }
+        });
 
         btnAprovarEmprest.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         btnAprovarEmprest.setText("Aprovar Empréstimo");
@@ -113,6 +120,11 @@ public class TelaAdmin extends javax.swing.JFrame {
 
         btnRegistrarDev.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         btnRegistrarDev.setText("Registrar Devolução");
+        btnRegistrarDev.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRegistrarDevActionPerformed(evt);
+            }
+        });
 
         btnSair.setBackground(new java.awt.Color(255, 204, 204));
         btnSair.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
@@ -192,7 +204,10 @@ public class TelaAdmin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSairActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairActionPerformed
-        // TODO add your handling code here:
+        sistema.salvarTudo();
+        TelaLogin telaLogin = new TelaLogin(sistema);
+        telaLogin.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnSairActionPerformed
 
     private void btnCadastrarLivroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarLivroActionPerformed
@@ -214,7 +229,7 @@ public class TelaAdmin extends javax.swing.JFrame {
         try {
             int isbn = Integer.parseInt(isbnStr);
             Livro livro = new Livro(titulo, autor, isbn, true);
-            admin.cadastrarLivro(sistema, livro); // usa Admin chamando SistemaBiblioteca
+            admin.cadastrarLivro(sistema, livro); 
             JOptionPane.showMessageDialog(this, "Livro cadastrado com sucesso!");
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ISBN inválido.");
@@ -356,32 +371,99 @@ public class TelaAdmin extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnAprovarEmprestActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
+    private void btnListarUsersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarUsersActionPerformed
+        StringBuilder sb = new StringBuilder("Usuários cadastrados:\n\n");
+
+        if (sistema.listarUsuarios().isEmpty()) {
+            sb.append("Nenhum usuário cadastrado.");
+        } else {
+            for (Usuario u : sistema.listarUsuarios()) {
+                sb.append(u.getClass().getSimpleName())  // Aluno ou Professor
+                .append(" - ")
+                .append(u.getNome());
+
+            // se tiver username/login no seu Usuario:
+                try {
+                    sb.append(" (login: ").append(u.getLogin()).append(")");
+                } catch (Exception ignore) { }
+
+                sb.append("\n");
             }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>
-        
-        SistemaBiblioteca sistema = new SistemaBiblioteca();
-        Admin admin = new Admin();
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new TelaAdmin(sistema, admin).setVisible(true));
-    }
+
+    JOptionPane.showMessageDialog(this, sb.toString());// TODO add your handling code here:
+    }//GEN-LAST:event_btnListarUsersActionPerformed
+
+    private void btnListarEmprestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarEmprestActionPerformed
+        StringBuilder sb = new StringBuilder("Empréstimos registrados:\n\n");
+
+        if (sistema.listarEmprestimos().isEmpty()) {
+            sb.append("Nenhum empréstimo registrado.");
+        } else {
+            for (Emprestimo e : sistema.listarEmprestimos()) {
+                sb.append(e).append("\n");
+            }
+        }
+
+        JOptionPane.showMessageDialog(this, sb.toString());
+    }//GEN-LAST:event_btnListarEmprestActionPerformed
+
+    private void btnRegistrarDevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarDevActionPerformed
+
+        java.util.List<Emprestimo> ativos = new java.util.ArrayList<>();
+        for (Emprestimo e : sistema.listarEmprestimos()) {
+            if ("APROVADO".equals(e.getStatus())) {
+                ativos.add(e);
+            }
+        }
+
+        if (ativos.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Não há empréstimos em aberto (APROVADO).");
+            return;
+        }
+
+        String[] opcoes = new String[ativos.size()];
+        for (int i = 0; i < ativos.size(); i++) {
+            opcoes[i] = (i + 1) + " - " + ativos.get(i).toString();
+        }
+
+        String escolha = (String) JOptionPane.showInputDialog(
+            this,
+            "Selecione o empréstimo devolvido:",
+            "Registrar Devolução",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            opcoes,
+            opcoes[0]
+        );
+
+        if (escolha == null) {
+            return; 
+        }
+
+        int indice;
+        try {
+            indice = Integer.parseInt(escolha.split(" ")[0]) - 1;
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Opção inválida.");
+            return;
+        }
+
+        if (indice < 0 || indice >= ativos.size()) {
+            JOptionPane.showMessageDialog(this, "Opção inválida.");
+            return;
+        }
+
+        Emprestimo selecionado = ativos.get(indice);
+
+   
+        admin.registrarDevolucao(selecionado);
+        sistema.salvarTudo();
+
+        JOptionPane.showMessageDialog(this, "Devolução registrada com sucesso!");
+    }//GEN-LAST:event_btnRegistrarDevActionPerformed
+
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAprovarEmprest;

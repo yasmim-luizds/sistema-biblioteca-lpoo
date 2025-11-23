@@ -190,6 +190,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Listar Usu&#xe1;rios"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnListarUsersActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnListarEmprest">
       <Properties>
@@ -198,6 +201,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Listar Empr&#xe9;stimos"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnListarEmprestActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnAprovarEmprest">
       <Properties>
@@ -217,6 +223,9 @@
         </Property>
         <Property name="text" type="java.lang.String" value="Registrar Devolu&#xe7;&#xe3;o"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRegistrarDevActionPerformed"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnSair">
       <Properties>

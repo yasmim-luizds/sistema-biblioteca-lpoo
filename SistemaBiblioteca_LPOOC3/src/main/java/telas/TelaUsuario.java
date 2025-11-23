@@ -9,24 +9,24 @@ import sistema.Livro;
 import sistema.SistemaBiblioteca;
 import usuarios.*;
 
-/**
- *
- * @author julia
- */
+
 public class TelaUsuario extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaUsuario.class.getName());
-    private SistemaBiblioteca sistema;
-    private Usuario usuario;
+    private static final java.util.logging.Logger logger =
+            java.util.logging.Logger.getLogger(TelaUsuario.class.getName());
+
+    private final SistemaBiblioteca sistema;
+    private final Usuario usuario;   // agora é final e vem no construtor
     
-    /**
-     * Creates new form TelaUsuario
-     */
-    public TelaUsuario(SistemaBiblioteca sistema) {
+    public TelaUsuario(SistemaBiblioteca sistema, Usuario usuario) {
         this.sistema = sistema;
+        this.usuario = usuario;
         initComponents();
         setLocationRelativeTo(null);
-        lBemVindoUser.setText("Bem-vindo, " + usuario.getNome() + " (" + usuario.getClass().getSimpleName() + ")");
+        lBemVindoUser.setText(
+                "Bem-vindo, " + usuario.getNome() +
+                " (" + usuario.getClass().getSimpleName() + ")"
+        );
     }
 
     /**
@@ -76,6 +76,11 @@ public class TelaUsuario extends javax.swing.JFrame {
         btnSairUser.setBackground(new java.awt.Color(255, 204, 204));
         btnSairUser.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
         btnSairUser.setText("Sair/Log out");
+        btnSairUser.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSairUserActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -145,39 +150,43 @@ public class TelaUsuario extends javax.swing.JFrame {
 
     private void btnListarEmpresUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarEmpresUserActionPerformed
         StringBuilder sb = new StringBuilder("Meus empréstimos:\n\n");
+    
+        boolean temAlgum = false;
+
         for (Emprestimo e : sistema.listarEmprestimos()) {
             if (e.getUsuario().equals(usuario)) {
-                sb.append(e).append("\n");
+                temAlgum = true;
+                sb.append(e.toString());
+                sb.append("\n");
+
+
+                if (e.emAtraso()) {
+                    double multa = e.calcularMulta();
+                    sb.append("   >>> EM ATRASO! Multa atual: R$ ")
+                    .append(String.format("%.2f", multa))
+                    .append("\n");
+                } else if ("APROVADO".equals(e.getStatus())) {
+                    sb.append("   Ainda dentro do prazo.\n");
+                }
+
+            sb.append("\n");
             }
         }
+
+        if (!temAlgum) {
+            sb.append("Você não possui empréstimos.");
+        }
+
         JOptionPane.showMessageDialog(this, sb.toString());
     }//GEN-LAST:event_btnListarEmpresUserActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ReflectiveOperationException | javax.swing.UnsupportedLookAndFeelException ex) {
-            logger.log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-        
-        SistemaBiblioteca sistema = new SistemaBiblioteca();
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new TelaUsuario(sistema).setVisible(true));
-    }
+    private void btnSairUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSairUserActionPerformed
+        sistema.salvarTudo();
+        new TelaLogin(sistema).setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnSairUserActionPerformed
+
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnListarEmpresUser;
