@@ -1,0 +1,2 @@
+ALUNO;julia;2004;julia ogassavara;julia@gmail.com;2521;Sistemas de Informação;4
+PROFESSOR;cinthia;12345;Cinthia;cinthia@hotmail.com;1020
