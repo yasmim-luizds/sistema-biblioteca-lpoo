@@ -35,19 +35,30 @@ public class SistemaBiblioteca {
         return null;
     }
 
+
     public void adicionarLivro(Livro livro) {
+        if (buscarLivroPorIsbn(livro.getIsbn()) != null) {
+            throw new IllegalArgumentException(
+                    "Já existe um livro cadastrado com o ISBN " + livro.getIsbn());
+        }
         livros.add(livro);
         Arquivo.gravarLivros(ARQ_LIVROS, livros);
     }
 
     public void excluirLivro(int isbn) {
-        livros.removeIf(l -> l.getIsbn() == isbn);
-        Arquivo.gravarLivros(ARQ_LIVROS, livros);
-    }
-
-    public void adicionarUsuario(Usuario u) {
-        usuarios.add(u);
-        Arquivo.gravarUsuarios(ARQ_USUARIOS, usuarios);
+        Livro paraRemover = null;
+        // procura o livro pelo isbn
+        for (Livro l : livros) {
+            if (l.getIsbn() == isbn) {
+                paraRemover = l;
+                break;
+            }
+        }
+        // se achou, remove e grava no arquivo
+        if (paraRemover != null) {
+            livros.remove(paraRemover);
+            Arquivo.gravarLivros(ARQ_LIVROS, livros);
+        }
     }
 
     public Livro buscarLivroPorIsbn(int isbn) {
@@ -59,6 +70,21 @@ public class SistemaBiblioteca {
         return null;
     }
 
+    public ArrayList<Livro> listarLivros() {
+        return livros;
+    }
+
+
+    public void adicionarUsuario(Usuario u) {
+        if (buscarUsuarioPorLogin(u.getLogin()) != null) {
+            throw new IllegalArgumentException(
+                    "Já existe um usuário com o login '" + u.getLogin() + "'.");
+        }
+
+        usuarios.add(u);
+        Arquivo.gravarUsuarios(ARQ_USUARIOS, usuarios);
+    }
+
     public Usuario buscarUsuarioPorLogin(String login) {
         for (Usuario u : usuarios) {
             if (u.getLogin().equals(login)) {
@@ -67,6 +93,11 @@ public class SistemaBiblioteca {
         }
         return null;
     }
+
+    public ArrayList<Usuario> listarUsuarios() {
+        return usuarios;
+    }
+
 
     public Emprestimo solicitarEmprestimo(Usuario solicitante, int isbn) throws Exception {
         Livro livro = buscarLivroPorIsbn(isbn);
@@ -113,14 +144,6 @@ public class SistemaBiblioteca {
         Arquivo.gravarEmprestimos(ARQ_EMPRESTIMOS, emprestimos);
         Arquivo.gravarLivros(ARQ_LIVROS, livros);
         return true;
-    }
-
-    public ArrayList<Livro> listarLivros() {
-        return livros;
-    }
-
-    public ArrayList<Usuario> listarUsuarios() {
-        return usuarios;
     }
 
     public ArrayList<Emprestimo> listarEmprestimos() {
