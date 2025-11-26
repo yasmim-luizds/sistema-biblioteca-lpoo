@@ -35,7 +35,7 @@ public class TelaLogin extends javax.swing.JFrame {
      */
     @SuppressWarnings("unchecked")
 
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
     private void initComponents() {
 
         ltextoSaudacao = new javax.swing.JLabel();
@@ -44,6 +44,7 @@ public class TelaLogin extends javax.swing.JFrame {
         lLogin = new javax.swing.JLabel();
         textFieldSenha = new javax.swing.JTextField();
         botaoEntrar = new javax.swing.JButton();
+        btnSairLogin = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -79,6 +80,15 @@ public class TelaLogin extends javax.swing.JFrame {
             }
         });
 
+        btnSairLogin.setBackground(new java.awt.Color(255, 204, 204));
+        btnSairLogin.setFont(new java.awt.Font("Times New Roman", 1, 14)); // NOI18N
+        btnSairLogin.setText("Sair/Log out");
+        btnSairLogin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSairLoginActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -86,23 +96,29 @@ public class TelaLogin extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(84, 84, 84)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(ltextoSaudacao)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(lLogin)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(textFieldLogin))
+                                .addGap(84, 84, 84)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addComponent(ltextoSaudacao)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(6, 6, 6)
+                                        .addComponent(lLogin)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(textFieldLogin))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(87, 87, 87)
+                                        .addComponent(lSenha)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(textFieldSenha))))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(87, 87, 87)
-                                .addComponent(lSenha)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(textFieldSenha))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(245, 245, 245)
-                        .addComponent(botaoEntrar)))
-                .addContainerGap(87, Short.MAX_VALUE))
+                                .addGap(245, 245, 245)
+                                .addComponent(botaoEntrar)))
+                        .addGap(0, 81, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnSairLogin)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -119,21 +135,23 @@ public class TelaLogin extends javax.swing.JFrame {
                     .addComponent(textFieldSenha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(46, 46, 46)
                 .addComponent(botaoEntrar)
-                .addContainerGap(36, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnSairLogin)
+                .addContainerGap())
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    }// </editor-fold>                        
 
-    private void textFieldLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textFieldLoginActionPerformed
+    private void textFieldLoginActionPerformed(java.awt.event.ActionEvent evt) {                                               
         // TODO add your handling code here:
-    }//GEN-LAST:event_textFieldLoginActionPerformed
+    }                                              
 
-    private void textFieldSenhaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_textFieldSenhaActionPerformed
+    private void textFieldSenhaActionPerformed(java.awt.event.ActionEvent evt) {                                               
         // TODO add your handling code here:
-    }//GEN-LAST:event_textFieldSenhaActionPerformed
+    }                                              
 
-    private void botaoEntrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botaoEntrarActionPerformed
+    private void botaoEntrarActionPerformed(java.awt.event.ActionEvent evt) {                                            
         String login = textFieldLogin.getText().trim();
         String senha = textFieldSenha.getText().trim();
 
@@ -162,7 +180,12 @@ public class TelaLogin extends javax.swing.JFrame {
         this.dispose();
 
         
-    }//GEN-LAST:event_botaoEntrarActionPerformed
+    }                                           
+
+    private void btnSairLoginActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        sistema.salvarTudo();
+        System.exit(0);
+    }                                            
 
     
     /**
@@ -191,12 +214,13 @@ public class TelaLogin extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(() -> new TelaLogin(sistema).setVisible(true));
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // Variables declaration - do not modify                     
     private javax.swing.JButton botaoEntrar;
+    private javax.swing.JButton btnSairLogin;
     private javax.swing.JLabel lLogin;
     private javax.swing.JLabel lSenha;
     private javax.swing.JLabel ltextoSaudacao;
     private javax.swing.JTextField textFieldLogin;
     private javax.swing.JTextField textFieldSenha;
-    // End of variables declaration//GEN-END:variables
+    // End of variables declaration                   
 }
