@@ -1,10 +1,4 @@
 package usuarios;
-
-import java.time.LocalDate;
-import sistema.Emprestimo;
-import sistema.Livro;
-import sistema.SistemaBiblioteca;
-
 public class Admin {
 
     protected String nome;
@@ -54,57 +48,4 @@ public class Admin {
         this.senha = senha;
     }
 
-    public void aprovarEmprestimo(Emprestimo e) {
-        if (!"PENDENTE".equals(e.getStatus())) {
-            System.out.println("Empréstimo já está aprovado/recusado/devolvido.");
-            return;
-        }
-        e.aprovar();
-        if (e.getUsuario() != null) {
-            e.getUsuario().incrementarEmprestimos();
-        }
-    }
-
-    public void registrarDevolucao(Emprestimo e) {
-        if (!"APROVADO".equals(e.getStatus())) {
-            System.out.println("Empréstimo não está em estado APROVADO.");
-            return;
-        }
-        e.registrarDevolucao(LocalDate.now());
-        if (e.getUsuario() != null) {
-            e.getUsuario().decrementarEmprestimos();
-        }
-        if (e.getLivro() != null) {
-            e.getLivro().setDisponivel(true);
-        }
-    }
-
-    public void cadastrarLivro(SistemaBiblioteca sistema, Livro novo) {
-        sistema.adicionarLivro(novo);
-    }
-
-    public void removerLivro(SistemaBiblioteca sistema, int isbn) {
-        Livro livro = sistema.buscarLivroPorIsbn(isbn);
-        if (livro == null) {
-            System.out.println("Livro não encontrado.");
-            return;
-        }
-        if (!livro.isDisponivel()) {
-            System.out.println("Livro não pode ser removido: está emprestado.");
-            return;
-        }
-        sistema.excluirLivro(isbn);
-    }
-
-    public void atualizarLivro(Livro livro, String titulo, String autor) {
-        if (livro == null) {
-            return;
-        }
-        if (titulo != null && !titulo.isBlank()) {
-            livro.setTitulo(titulo);
-        }
-        if (autor != null && !autor.isBlank()) {
-            livro.setAutor(autor);
-        }
-    }
 }
